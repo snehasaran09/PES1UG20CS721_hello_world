@@ -1,0 +1,40 @@
+name: Build and Test C++ Project
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies (gtest example)
+        run: sudo apt-get update && sudo apt-get install -y libgtest-dev
+
+      - name: Configure CMake
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build ${{github.workspace}}/build --config Release
+
+      - name: Run Tests
+        run: make test -C ${{github.workspace}}/build
+
+      - name: Upload test results (optional)
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: ${{github.workspace}}/build/Testing/Temporary/
+          if: always() 
+
+      - name: View test results (optional)
+        uses: EnricoMi/publish-unit-test-results-action@v1
+        with:
+          test_results: ${{ github.workspace }}/build/Testing/Temporary/UnitTest.xml
+          check_name: 'C++ Unit Tests'
+          if: always()  
